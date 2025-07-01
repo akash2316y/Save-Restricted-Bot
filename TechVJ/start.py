@@ -159,7 +159,9 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     asyncio.create_task(downstatus(client, f'{message.id}downstatus.txt', smsg, chat))
 
     try:
-        file = await acc.download_media(msg, progress=progress, progress_args=[message, "down"])
+        file = None
+        if msg_type.lower() in ["document", "video", "audio", "photo", "animation"]:
+            file = await acc.download_media(msg, progress=progress, progress_args=[message, "down"])
         os.remove(f'{message.id}downstatus.txt')
     except Exception as e:
         if ERROR_MESSAGE:
@@ -167,6 +169,7 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         return await smsg.delete()
 
     asyncio.create_task(upstatus(client, f'{message.id}upstatus.txt', smsg, chat))
+
     caption = (msg.caption or msg.text or "") + f"\n\n{user_tag}"
 
     buttons = []
@@ -176,32 +179,43 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
                 if button.url:
                     buttons.append([InlineKeyboardButton(button.text, url=button.url)])
 
-    send_args = dict(
-        caption=caption,
-        reply_to_message_id=message.id,
-        parse_mode=enums.ParseMode.MARKDOWN,
-        progress=progress,
-        progress_args=[message, "up"]
-    )
+    reply_markup = InlineKeyboardMarkup(buttons) if buttons else None
 
     try:
-        send_func = getattr(client, f"send_{msg_type.lower()}", None)
-        if send_func:
-            await send_func(chat, file, **send_args)
-            await send_func(
-                DB_CHANNEL,
-                file,
-                caption=caption,
+        # Sending to user
+        if msg_type == "Sticker":
+            await client.send_sticker(chat, msg.sticker.file_id, reply_to_message_id=message.id)
+            await client.send_sticker(DB_CHANNEL, msg.sticker.file_id)
+        elif msg_type == "Text":
+            await client.send_message(
+                chat,
+                text=caption,
+                reply_to_message_id=message.id,
                 parse_mode=enums.ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup(buttons) if buttons else None
+                reply_markup=reply_markup
             )
+            await client.send_message(
+                DB_CHANNEL,
+                text=caption,
+                parse_mode=enums.ParseMode.MARKDOWN,
+                reply_markup=reply_markup
+            )
+        elif file:
+            send_func = getattr(client, f"send_{msg_type.lower()}", None)
+            if send_func:
+                await send_func(chat, file, caption=caption, reply_to_message_id=message.id,
+                                parse_mode=enums.ParseMode.MARKDOWN, reply_markup=reply_markup,
+                                progress=progress, progress_args=[message, "up"])
+
+                await send_func(DB_CHANNEL, file, caption=caption,
+                                parse_mode=enums.ParseMode.MARKDOWN, reply_markup=reply_markup)
     except Exception as e:
         if ERROR_MESSAGE:
             await client.send_message(chat, f"Error: {e}", reply_to_message_id=message.id)
 
     if os.path.exists(f'{message.id}upstatus.txt'):
         os.remove(f'{message.id}upstatus.txt')
-    if os.path.exists(file):
+    if file and os.path.exists(file):
         os.remove(file)
 
     await client.delete_messages(chat, [smsg.id])
