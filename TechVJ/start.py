@@ -1,10 +1,7 @@
 import os
 import asyncio
 from pyrogram import Client, filters, enums
-from pyrogram.errors import (
-    FloodWait, UserIsBlocked, InputUserDeactivated,
-    UserAlreadyParticipant, InviteHashExpired, UsernameNotOccupied
-)
+from pyrogram.errors import UsernameNotOccupied
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
 from config import API_ID, API_HASH, ERROR_MESSAGE, DB_CHANNEL
@@ -55,15 +52,18 @@ async def send_start(client: Client, message: Message):
     buttons = [
         [InlineKeyboardButton("❣️ Developer", url="https://t.me/UpperAssam")],
         [
-            InlineKeyboardButton('🔍 Support Group', url='https://t.me/UnknownBotzChat'),
-            InlineKeyboardButton('🤖 Update Channel', url='https://t.me/UnknownBotz')
+            InlineKeyboardButton("🔍 Support Group", url="https://t.me/UnknownBotzChat"),
+            InlineKeyboardButton("🤖 Update Channel", url="https://t.me/UnknownBotz")
         ]
     ]
     reply_markup = InlineKeyboardMarkup(buttons)
 
     await client.send_message(
         chat_id=message.chat.id,
-        text=f"<b>👋 Hi {message.from_user.mention}, I am Save Restricted Content Bot.\n\nUse /login to access restricted content.\nCheck /help for usage instructions.</b>",
+        text=(
+            f"<b>👋 Hi {message.from_user.mention}, I am Save Restricted Content Bot.\n\n"
+            f"Use /login to access restricted content.\nCheck /help for usage instructions.</b>"
+        ),
         reply_markup=reply_markup,
         reply_to_message_id=message.id
     )
@@ -71,7 +71,7 @@ async def send_start(client: Client, message: Message):
 
 @Client.on_message(filters.command(["help"]))
 async def send_help(client: Client, message: Message):
-    await client.send_message(chat_id=message.chat.id, text=f"{HELP_TXT}")
+    await client.send_message(chat_id=message.chat.id, text=HELP_TXT)
 
 
 @Client.on_message(filters.command(["cancel"]))
@@ -109,7 +109,12 @@ async def save(client: Client, message: Message):
             return
 
         try:
-            acc = Client("saverestricted", session_string=user_data, api_hash=API_HASH, api_id=API_ID)
+            acc = Client(
+                "saverestricted",
+                session_string=user_data,
+                api_hash=API_HASH,
+                api_id=API_ID
+            )
             await acc.connect()
         except:
             batch_temp.IS_BATCH[message.from_user.id] = True
@@ -117,35 +122,15 @@ async def save(client: Client, message: Message):
 
         if "https://t.me/c/" in message.text:
             chatid = int("-100" + datas[4])
-            try:
-                await handle_private(client, acc, message, chatid, msgid)
-            except Exception as e:
-                if ERROR_MESSAGE:
-                    await client.send_message(message.chat.id, f"Error: {e}", reply_to_message_id=message.id)
-
-        elif "https://t.me/b/" in message.text:
-            username = datas[4]
-            try:
-                await handle_private(client, acc, message, username, msgid)
-            except Exception as e:
-                if ERROR_MESSAGE:
-                    await client.send_message(message.chat.id, f"Error: {e}", reply_to_message_id=message.id)
-
         else:
-            username = datas[3]
-            try:
-                msg = await client.get_messages(username, msgid)
-            except UsernameNotOccupied:
-                await client.send_message(message.chat.id, "The username is not occupied.", reply_to_message_id=message.id)
-                return
-            try:
-                await client.copy_message(message.chat.id, msg.chat.id, msg.id, reply_to_message_id=message.id)
-            except:
-                try:
-                    await handle_private(client, acc, message, username, msgid)
-                except Exception as e:
-                    if ERROR_MESSAGE:
-                        await client.send_message(message.chat.id, f"Error: {e}", reply_to_message_id=message.id)
+            chatid = datas[3]
+
+        try:
+            await handle_private(client, acc, message, chatid, msgid)
+        except Exception as e:
+            if ERROR_MESSAGE:
+                await client.send_message(message.chat.id, f"Error: {e}", reply_to_message_id=message.id)
+
         await asyncio.sleep(3)
 
     batch_temp.IS_BATCH[message.from_user.id] = True
@@ -170,7 +155,7 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     chat = message.chat.id
     user_tag = f"From: {message.from_user.first_name}"
 
-    smsg = await client.send_message(chat, '**Downloading**', reply_to_message_id=message.id)
+    smsg = await client.send_message(chat, 'Downloading', reply_to_message_id=message.id)
     asyncio.create_task(downstatus(client, f'{message.id}downstatus.txt', smsg, chat))
 
     try:
@@ -184,6 +169,13 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     asyncio.create_task(upstatus(client, f'{message.id}upstatus.txt', smsg, chat))
     caption = (msg.caption or msg.text or "") + f"\n\n{user_tag}"
 
+    buttons = []
+    if msg.reply_markup and msg.reply_markup.inline_keyboard:
+        for row in msg.reply_markup.inline_keyboard:
+            for button in row:
+                if button.url:
+                    buttons.append([InlineKeyboardButton(button.text, url=button.url)])
+
     send_args = dict(
         caption=caption,
         reply_to_message_id=message.id,
@@ -193,27 +185,16 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     )
 
     try:
-        if msg_type == "Document":
-            await client.send_document(chat, file, **send_args)
-            await client.send_document(DB_CHANNEL, file, caption=caption, parse_mode=enums.ParseMode.MARKDOWN)
-        elif msg_type == "Video":
-            await client.send_video(chat, file, **send_args)
-            await client.send_video(DB_CHANNEL, file, caption=caption, parse_mode=enums.ParseMode.MARKDOWN)
-        elif msg_type == "Photo":
-            await client.send_photo(chat, file, **send_args)
-            await client.send_photo(DB_CHANNEL, file, caption=caption, parse_mode=enums.ParseMode.MARKDOWN)
-        elif msg_type == "Audio":
-            await client.send_audio(chat, file, **send_args)
-            await client.send_audio(DB_CHANNEL, file, caption=caption, parse_mode=enums.ParseMode.MARKDOWN)
-        elif msg_type == "Voice":
-            await client.send_voice(chat, file, **send_args)
-            await client.send_voice(DB_CHANNEL, file, caption=caption, parse_mode=enums.ParseMode.MARKDOWN)
-        elif msg_type == "Animation":
-            await client.send_animation(chat, file, **send_args)
-            await client.send_animation(DB_CHANNEL, file, caption=caption, parse_mode=enums.ParseMode.MARKDOWN)
-        elif msg_type == "Sticker":
-            await client.send_sticker(chat, file, reply_to_message_id=message.id)
-            await client.send_sticker(DB_CHANNEL, file)
+        send_func = getattr(client, f"send_{msg_type.lower()}", None)
+        if send_func:
+            await send_func(chat, file, **send_args)
+            await send_func(
+                DB_CHANNEL,
+                file,
+                caption=caption,
+                parse_mode=enums.ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup(buttons) if buttons else None
+            )
     except Exception as e:
         if ERROR_MESSAGE:
             await client.send_message(chat, f"Error: {e}", reply_to_message_id=message.id)
