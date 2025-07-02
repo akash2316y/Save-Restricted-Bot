@@ -131,14 +131,38 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     if not msg or msg.empty:
         return
 
+    chat = message.chat.id
+    user_tag = f"From: [{message.from_user.first_name}](tg://user?id={message.from_user.id})"
+
+    # Get text/caption
+    text_content = msg.text or msg.caption or ""
+    links = re.findall(r"https?://[^\s]+", text_content)
+
+    # Extract buttons if any
+    buttons = []
+    if msg.reply_markup and msg.reply_markup.inline_keyboard:
+        for row in msg.reply_markup.inline_keyboard:
+            for button in row:
+                if button.url:
+                    buttons.append([InlineKeyboardButton(button.text, url=button.url)])
+
+    # If links only (no media), convert to button message
+    if msg.media is None and links:
+        # Add link buttons
+        for idx, link in enumerate(links, 1):
+            buttons.append([InlineKeyboardButton(f"Link {idx}", url=link)])
+
+        markup = InlineKeyboardMarkup(buttons) if buttons else None
+        await client.send_message(chat, "Here are your links:", reply_markup=markup, reply_to_message_id=message.id)
+        await client.send_message(DB_CHANNEL, f"Links from user:\n\n{user_tag}", reply_markup=markup)
+        return
+
+    # Continue for media-type messages
     msg_type = get_message_type(msg)
     if not msg_type:
         return
 
-    chat = message.chat.id
-    user_tag = f"From: [{message.from_user.first_name}](tg://user?id={message.from_user.id})"
-
-    smsg = await client.send_message(chat, '**Downloading**', reply_to_message_id=message.id)
+    smsg = await client.send_message(chat, 'Downloading...', reply_to_message_id=message.id)
     asyncio.create_task(downstatus(client, f'{message.id}downstatus.txt', smsg, chat))
 
     try:
@@ -150,35 +174,29 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         return await smsg.delete()
 
     asyncio.create_task(upstatus(client, f'{message.id}upstatus.txt', smsg, chat))
-
-    original_caption = (msg.caption or msg.text or "") + f"\n\n{user_tag}"
-
-    # Extract any plain text URLs from the original message content
-    extra_links = "\n\n".join(re.findall(r'https?://\S+', original_caption))
-    caption = original_caption + ("\n\n" + extra_links if extra_links else "")
-
-    # Extract buttons from original message for DB channel
-    buttons = []
-    if msg.reply_markup and msg.reply_markup.inline_keyboard:
-        for row in msg.reply_markup.inline_keyboard:
-            for button in row:
-                if button.url:
-                    buttons.append([InlineKeyboardButton(button.text, url=button.url)])
+    
+    # Caption for user and DB
+    user_caption = msg.caption or msg.text or ""
+    db_caption = user_caption + f"\n\n{user_tag}"
+    markup = InlineKeyboardMarkup(buttons) if buttons else None
 
     send_args = dict(
-        caption=caption,
+        caption=user_caption,
         reply_to_message_id=message.id,
         parse_mode=enums.ParseMode.MARKDOWN,
         progress=progress,
-        progress_args=[message, "up"]
+        progress_args=[message, "up"],
+        reply_markup=markup
     )
 
     try:
         send_func = getattr(client, f"send_{msg_type.lower()}", None)
         if send_func:
-            await send_func(chat, file, **send_args)  # to user, without buttons
-            await send_func(DB_CHANNEL, file, caption=caption, parse_mode=enums.ParseMode.MARKDOWN,
-                            reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+            # Send to user
+            await send_func(chat, file, **send_args)
+
+            # Send to DB_CHANNEL with user_tag
+            await send_func(DB_CHANNEL, file, caption=db_caption, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=markup)
     except Exception as e:
         if ERROR_MESSAGE:
             await client.send_message(chat, f"Error: {e}", reply_to_message_id=message.id)
