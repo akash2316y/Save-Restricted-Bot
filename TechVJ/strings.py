@@ -4,18 +4,18 @@ HELP_TXT = """𝖡𝗈𝗍 𝖢𝗈𝗆𝗆𝖺𝗇𝖽𝗌:
 /login - 𝖫𝗈𝗀 𝗂𝗇 𝗍𝗈 𝖺𝖼𝖼𝖾𝗌𝗌 𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖼𝗈𝗇𝗍𝖾𝗇𝗍.
 /logout - 𝖫𝗈𝗀 𝗈𝗎𝗍 𝖿𝗋𝗈𝗆 𝗍𝗁𝖾 𝖼𝗎𝗋𝗋𝖾𝗇𝗍 𝗌𝖾𝗌𝗌𝗂𝗈𝗇.
 /cancel - 𝖢𝖺𝗇𝖼𝖾𝗅 𝗍𝗁𝖾 𝖼𝗎𝗋𝗋𝖾𝗇𝗍 𝗍𝖺𝗌𝗄.
-<blockquote>SINGLE POST FOR PUBLIC CHANNEL
-Just send the post link.
+<blockquote>𝖲𝖨𝖭𝖦𝖫𝖤 𝖯𝖮𝖲𝖳 𝖥𝖮𝖱 𝖯𝖴𝖡𝖫𝖨𝖢 𝖢𝖧𝖠𝖭𝖭𝖤𝖫
+𝖩𝗎𝗌𝗍 𝗌𝖾𝗇𝖽 𝗍𝗁𝖾 𝗉𝗈𝗌𝗍 𝗅𝗂𝗇𝗄.
 
-SINGLE POST FOR PRIVATE CHANNEL
-First send the invite link to the channel or group, then
-send the post link.
+𝖲𝖨𝖭𝖦𝖫𝖤 𝖯𝖮𝖲𝖳 𝖥𝖮𝖱 𝖯𝖱𝖨𝖵𝖠𝖳𝖤 𝖢𝖧𝖠𝖭𝖭𝖤𝖫
+𝖥𝗂𝗋𝗌𝗍 𝗌𝖾𝗇𝖽 𝗍𝗁𝖾 𝗂𝗇𝗏𝗂𝗍𝖾 𝗅𝗂𝗇𝗄 𝗍𝗈 𝗍𝗁𝖾 𝖼𝗁𝖺𝗇𝗇𝖾𝗅 𝗈𝗋 𝗀𝗋𝗈𝗎𝗉, 𝗍𝗁𝖾𝗇
+𝗌𝖾𝗇𝖽 𝗍𝗁𝖾 𝗉𝗈𝗌𝗍 𝗅𝗂𝗇𝗄.
 
-MULTI POSTS FOR PRIVATE/PUBLIC CHANNEL
-Send post links in the format from - to to send multiple
-messages, like:
+𝖬𝖴𝖫𝖳𝖨 𝖯𝖮𝖲𝖳𝖲 𝖥𝖮𝖱 𝖯𝖱𝖨𝖵𝖠𝖳𝖤/𝖯𝖴𝖡𝖫𝖨𝖢 𝖢𝖧𝖠𝖭𝖭𝖤𝖫
+𝖲𝖾𝗇𝖽 𝗉𝗈𝗌𝗍 𝗅𝗂𝗇𝗄𝗌 𝗂𝗇 𝗍𝗁𝖾 𝖿𝗈𝗋𝗆𝖺𝗍 𝖿𝗋𝗈𝗆 - 𝗍𝗈 𝗍𝗈 𝗌𝖾𝗇𝖽 𝗆𝗎𝗅𝗍𝗂𝗉𝗅𝖾
+𝗆𝖾𝗌𝗌𝖺𝗀𝖾𝗌, 𝗅𝗂𝗄𝖾:
 
-https://t.me/xxxx/101-120
-https://t.me/c/xxxx/101 - 120
+𝗁𝗍𝗍𝗉𝗌://𝗍.𝗆𝖾/𝗑𝗑𝗑𝗑/101-120
+𝗁𝗍𝗍𝗉𝗌://𝗍.𝗆𝖾/𝖼/𝗑𝗑𝗑𝗑/101 - 120
 
-Note: Space doesn’t matter ‼️</blockquote>"""
+𝖭𝗈𝗍𝖾: 𝖲𝗉𝖺𝖼𝖾 𝖽𝗈𝖾𝗌𝗇’𝗍 𝗆𝖺𝗍𝗍𝖾𝗋 ‼️</blockquote>"""
