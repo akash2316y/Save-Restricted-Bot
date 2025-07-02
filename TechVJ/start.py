@@ -50,17 +50,16 @@ async def send_start(client: Client, message: Message):
         await db.add_user(message.from_user.id, message.from_user.first_name)
 
     buttons = [
-        [InlineKeyboardButton("❣️ Developer", url="https://t.me/UpperAssam")],
-        [
-            InlineKeyboardButton('🔍 Support Group', url='https://t.me/UnknownBotzChat'),
-            InlineKeyboardButton('🤖 Update Channel', url='https://t.me/UnknownBotz')
+        [InlineKeyboardButton('𝖴𝗉𝖽𝖺𝗍𝖾', url='https://t.me/UnknownBotz'),
+            InlineKeyboardButton('𝖲𝗎𝗉𝗉𝗈𝗋𝗍', url='https://t.me/UnknownBotzChat')
         ]
     ]
     reply_markup = InlineKeyboardMarkup(buttons)
 
     await client.send_message(
         chat_id=message.chat.id,
-        text=f"<b>👋 Hi {message.from_user.mention}, I am Save Restricted Content Bot.\n\nUse /login to access restricted content.\nCheck /help for usage instructions.</b>",
+        text=f"<b>👋 𝖧𝗂 {message.from_user.mention}, 𝖨 𝖺𝗆 𝖲𝖺𝗏𝖾 𝖱𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖢𝗈𝗇𝗍𝖾𝗇𝗍 𝖡𝗈𝗍 🤖</b> \n
+<blockquote>𝖨 𝖼𝖺𝗇 𝗁𝖾𝗅𝗉 𝗒𝗈𝗎 𝗋𝖾𝗍𝗋𝗂𝖾𝗏𝖾 𝖺𝗇𝖽 𝖿𝗈𝗋𝗐𝖺𝗋𝖽 𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖼𝗈𝗇𝗍𝖾𝗇𝗍 𝖿𝗋𝗈𝗆 𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆 𝗉𝗈𝗌𝗍𝗌.!</blockquote>",
         reply_markup=reply_markup,
         reply_to_message_id=message.id
     )
@@ -74,7 +73,7 @@ async def send_help(client: Client, message: Message):
 @Client.on_message(filters.command(["cancel"]))
 async def send_cancel(client: Client, message: Message):
     batch_temp.IS_BATCH[message.from_user.id] = True
-    await client.send_message(chat_id=message.chat.id, text="Batch Successfully Cancelled.")
+    await client.send_message(chat_id=message.chat.id, text="𝖡𝖺𝗍𝖼𝗁 𝖢𝖺𝗇𝖼𝖾𝗅𝗅𝖾𝖽.‼️")
 
 
 @Client.on_message(filters.text & filters.private)
@@ -83,7 +82,7 @@ async def save(client: Client, message: Message):
         return
 
     if batch_temp.IS_BATCH.get(message.from_user.id) == False:
-        return await message.reply_text("One task is already processing. Use /cancel to stop it.")
+        return await message.reply_text("𝖳𝖺𝗌𝗄 𝗂𝗌 𝖺𝗅𝗋𝖾𝖺𝖽𝗒 𝗉𝗋𝗈𝖼𝖾𝗌𝗌𝗂𝗇𝗀. \n𝖴𝗌𝖾 /cancel 𝗍𝗈 𝗌𝗍𝗈𝗉.")
 
     urls = [x.strip() for x in message.text.split("\n") if x.startswith("https://t.me/")]
 
@@ -105,7 +104,7 @@ async def save(client: Client, message: Message):
 
             user_data = await db.get_session(message.from_user.id)
             if user_data is None:
-                await message.reply("Please /login to continue.")
+                await message.reply("𝖯𝗅𝖾𝖺𝗌𝖾 /login 𝗍𝗈 𝖼𝗈𝗇𝗍𝗂𝗇𝗎𝖾.")
                 batch_temp.IS_BATCH[message.from_user.id] = True
                 return
 
@@ -114,7 +113,7 @@ async def save(client: Client, message: Message):
                 await acc.connect()
             except:
                 batch_temp.IS_BATCH[message.from_user.id] = True
-                return await message.reply("Session expired. Use /logout and /login again.")
+                return await message.reply("𝖲𝖾𝗌𝗌𝗂𝗈𝗇 𝖾𝗑𝗉𝗂𝗋𝖾𝖽. \n𝖴𝗌𝖾 /logout 𝖺𝗇𝖽 /login 𝖺𝗀𝖺𝗂𝗇.")
 
             if "https://t.me/c/" in link:
                 chatid = int("-100" + datas[4])
@@ -151,7 +150,7 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     chat = message.chat.id
     user_tag = f"From: [{message.from_user.first_name}](tg://user?id={message.from_user.id})"
 
-    smsg = await client.send_message(chat, '**Downloading**', reply_to_message_id=message.id)
+    smsg = await client.send_message(chat, '**𝖣𝗈𝗐𝗇𝗅𝗈𝖺𝖽𝗂𝗇𝗀...**', reply_to_message_id=message.id)
     asyncio.create_task(downstatus(client, f'{message.id}downstatus.txt', smsg, chat))
 
     try:
