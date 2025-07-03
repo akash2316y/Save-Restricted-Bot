@@ -87,10 +87,28 @@ async def send_help(client: Client, message: Message):
 async def callback_query_handler(client: Client, callback_query: CallbackQuery):
     if callback_query.data == 'help_callback':
         await callback_query.answer()
+        # Help ke liye Back & Close buttons
+        help_buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("𝖡𝖺𝖼𝗄", callback_data="back_callback"),
+             InlineKeyboardButton("𝖢𝗅𝗈𝗌𝖾", callback_data="close_callback")]
+        ])
         await callback_query.edit_message_text(
-            text=HELP_TXT,  # Shows the same help text again (you can change this if you want)
-            reply_markup=callback_query.message.reply_markup  # Keep the same buttons
+            text=HELP_TXT,
+            reply_markup=help_buttons
         )
+
+    elif callback_query.data == 'back_callback':
+        await callback_query.answer()
+        # Wapas Start message wale buttons
+        await callback_query.edit_message_text(
+            text=START_TXT,
+            reply_markup=start_buttons
+        )
+
+    elif callback_query.data == 'close_callback':
+        await callback_query.answer()
+        await callback_query.message.delete()
+        
         
 @Client.on_message(filters.command(["cancel"]))
 async def send_cancel(client: Client, message: Message):
