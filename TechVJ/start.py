@@ -50,7 +50,7 @@ def progress(current, total, message, type):
 # Define START text and buttons globally
 START_TXT = (
     "<b>👋 𝖧𝗂 {}, 𝖨 𝖺𝗆 𝖲𝖺𝗏𝖾 𝖱𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖢𝗈𝗇𝗍𝖾𝗇𝗍 𝖡𝗈𝗍 🤖</b>\n\n"
-    "<blockquote>𝖨 𝖼𝖺𝗇 𝗁𝖾𝗅𝗉 𝗒𝗈𝗎 𝗋𝖾𝗍𝗋𝗂𝖾𝗏𝖾 𝖺𝗇𝖽 𝖿𝗈𝗋𝗐𝖺𝗋𝖽 𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖼𝗈𝗇𝗍𝖾𝗇𝗍 𝖿𝗋𝗈𝗆 𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆 𝗉𝗈𝗌𝗍𝗌.! 𝖴𝗌𝖾 /help</blockquote>"
+    "<blockquote>𝖨 𝖼𝖺𝗇 𝗁𝖾𝗅𝗉 𝗒𝗈𝗎 𝗋𝖾𝗍𝗋𝗂𝖾𝗏𝖾 𝖺𝗇𝖽 𝖿𝗈𝗋𝗐𝖺𝗋𝖽 𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖼𝗈𝗇𝗍𝖾𝗇𝗍 𝖿𝗋𝗈𝗆 𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆 𝗉𝗈𝗌𝗍𝗌.</blockquote>"
 )
 
 def get_start_buttons():
@@ -81,12 +81,6 @@ async def send_start(client: Client, message: Message):
         reply_markup=get_start_buttons(),
         reply_to_message_id=message.id
     )
-
-
-@Client.on_message(filters.command(["help"]))
-async def send_help(client: Client, message: Message):
-    await client.send_message(chat_id=message.chat.id, text=HELP_TXT)
-
 
 @Client.on_callback_query()
 async def callback_query_handler(client: Client, callback_query: CallbackQuery):
