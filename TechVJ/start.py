@@ -1,6 +1,7 @@
 import os
 import asyncio
 from pyrogram import Client, filters, enums
+from .fsub import get_fsub
 from pyrogram.errors import UsernameNotOccupied
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
@@ -43,16 +44,18 @@ def progress(current, total, message, type):
     with open(f'{message.id}{type}status.txt', "w") as fileup:
         fileup.write(f"{current * 100 / total:.1f}%")
 
-
 @Client.on_message(filters.command(["start"]))
 async def send_start(client: Client, message: Message):
+    if IS_FSUB:
+        if not await get_fsub(client, message):
+            return  # Force subscribe: don't proceed if user hasn't joined
+
     if not await db.is_user_exist(message.from_user.id):
         await db.add_user(message.from_user.id, message.from_user.first_name)
 
     buttons = [
         [InlineKeyboardButton('𝖴𝗉𝖽𝖺𝗍𝖾', url='https://t.me/UnknownBotz'),
-            InlineKeyboardButton('𝖲𝗎𝗉𝗉𝗈𝗋𝗍', url='https://t.me/UnknownBotzChat')
-        ]
+         InlineKeyboardButton('𝖲𝗎𝗉𝗉𝗈𝗋𝗍', url='https://t.me/UnknownBotzChat')]
     ]
     reply_markup = InlineKeyboardMarkup(buttons)
 
