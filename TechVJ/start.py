@@ -68,13 +68,13 @@ buttons = [
 
 reply_markup = InlineKeyboardMarkup(buttons)
 
-    await client.send_message(
+async def example_function():
+    await client.send_message(   # ← Yeh line pe sirf 4 spaces (1 tab) hai
         chat_id=message.chat.id,
         text=f"<b>👋 𝖧𝗂 {message.from_user.mention}, 𝖨 𝖺𝗆 𝖲𝖺𝗏𝖾 𝖱𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖢𝗈𝗇𝗍𝖾𝗇𝗍 𝖡𝗈𝗍 🤖</b><blockquote>𝖨 𝖼𝖺𝗇 𝗁𝖾𝗅𝗉 𝗒𝗈𝗎 𝗋𝖾𝗍𝗋𝗂𝖾𝗏𝖾 𝖺𝗇𝖽 𝖿𝗈𝗋𝗐𝖺𝗋𝖽 𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖼𝗈𝗇𝗍𝖾𝗇𝗍 𝖿𝗋𝗈𝗆 𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆 𝗉𝗈𝗌𝗍𝗌.! 𝖴𝗌𝖾 /help</blockquote>",
         reply_markup=reply_markup,
         reply_to_message_id=message.id
     )
-
 
 @Client.on_message(filters.command(["help"]))
 async def send_help(client: Client, message: Message):
