@@ -1,7 +1,6 @@
 import os
 import asyncio
 from pyrogram import Client, filters, enums
-from telegram.ext import CallbackQueryHandler
 from .fsub import get_fsub
 from config import IS_FSUB
 from pyrogram.errors import UsernameNotOccupied
