@@ -2,6 +2,7 @@ import os
 import asyncio
 from pyrogram import Client, filters, enums
 from .fsub import get_fsub
+from config import IS_FSUB
 from pyrogram.errors import UsernameNotOccupied
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
