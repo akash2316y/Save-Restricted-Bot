@@ -1,6 +1,7 @@
 import os
 import asyncio
 from pyrogram import Client, filters, enums
+from telegram.ext import CallbackQueryHandler
 from .fsub import get_fsub
 from config import IS_FSUB
 from pyrogram.errors import UsernameNotOccupied
@@ -53,12 +54,19 @@ async def send_start(client: Client, message: Message):
 
     if not await db.is_user_exist(message.from_user.id):
         await db.add_user(message.from_user.id, message.from_user.first_name)
-
-    buttons = [
-        [InlineKeyboardButton('𝖴𝗉𝖽𝖺𝗍𝖾', url='https://t.me/UnknownBotz'),
-         InlineKeyboardButton('𝖲𝗎𝗉𝗉𝗈𝗋𝗍', url='https://t.me/UnknownBotzChat')]
+        
+buttons = [
+    [
+        InlineKeyboardButton('𝖴𝗉𝖽𝖺𝗍𝖾', url='https://t.me/UnknownBotz'),
+        InlineKeyboardButton('𝖲𝗎𝗉𝗉𝗈𝗋𝗍', url='https://t.me/UnknownBotzChat')
+    ],
+    [
+        InlineKeyboardButton('𝖧𝖾𝗅𝗉', callback_data='help_callback'),
+        InlineKeyboardButton('𝖣𝖾𝗏𝖾𝗅𝗈𝗉𝖾𝗋', url='tg://openmessage?user_id=6165669080')
     ]
-    reply_markup = InlineKeyboardMarkup(buttons)
+]
+
+reply_markup = InlineKeyboardMarkup(buttons)
 
     await client.send_message(
         chat_id=message.chat.id,
@@ -72,7 +80,16 @@ async def send_start(client: Client, message: Message):
 async def send_help(client: Client, message: Message):
     await client.send_message(chat_id=message.chat.id, text=HELP_TXT)
 
-
+# Callback Query Handler for the Help button
+@Client.on_callback_query()
+async def callback_query_handler(client: Client, callback_query: CallbackQuery):
+    if callback_query.data == 'help_callback':
+        await callback_query.answer()
+        await callback_query.edit_message_text(
+            text=HELP_TXT,  # Shows the same help text again (you can change this if you want)
+            reply_markup=callback_query.message.reply_markup  # Keep the same buttons
+        )
+        
 @Client.on_message(filters.command(["cancel"]))
 async def send_cancel(client: Client, message: Message):
     batch_temp.IS_BATCH[message.from_user.id] = True
