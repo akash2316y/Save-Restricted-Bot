@@ -1,6 +1,7 @@
 import os
 import asyncio
 from pyrogram import Client, filters, enums
+from pyrogram.types import CallbackQuery
 from .fsub import get_fsub
 from config import IS_FSUB
 from pyrogram.errors import UsernameNotOccupied
