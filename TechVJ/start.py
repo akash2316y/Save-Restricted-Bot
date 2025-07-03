@@ -46,16 +46,15 @@ def progress(current, total, message, type):
     with open(f'{message.id}{type}status.txt', "w") as fileup:
         fileup.write(f"{current * 100 / total:.1f}%")
 
-@Client.on_message(filters.command(["start"]))
-async def send_start(client: Client, message: Message):
-    if IS_FSUB:
-        if not await get_fsub(client, message):
-            return  # Force subscribe: don't proceed if user hasn't joined
 
-    if not await db.is_user_exist(message.from_user.id):
-        await db.add_user(message.from_user.id, message.from_user.first_name)
+# Define START text and buttons globally
+START_TXT = (
+    "<b>👋 𝖧𝗂 {}, 𝖨 𝖺𝗆 𝖲𝖺𝗏𝖾 𝖱𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖢𝗈𝗇𝗍𝖾𝗇𝗍 𝖡𝗈𝗍 🤖</b>\n\n"
+    "<blockquote>𝖨 𝖼𝖺𝗇 𝗁𝖾𝗅𝗉 𝗒𝗈𝗎 𝗋𝖾𝗍𝗋𝗂𝖾𝗏𝖾 𝖺𝗇𝖽 𝖿𝗈𝗋𝗐𝖺𝗋𝖽 𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖼𝗈𝗇𝗍𝖾𝗇𝗍 𝖿𝗋𝗈𝗆 𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆 𝗉𝗈𝗌𝗍𝗌.! 𝖴𝗌𝖾 /help</blockquote>"
+)
 
-    buttons = [
+def get_start_buttons():
+    return InlineKeyboardMarkup([
         [
             InlineKeyboardButton('𝖴𝗉𝖽𝖺𝗍𝖾', url='https://t.me/UnknownBotz'),
             InlineKeyboardButton('𝖲𝗎𝗉𝗉𝗈𝗋𝗍', url='https://t.me/UnknownBotzChat')
@@ -64,30 +63,35 @@ async def send_start(client: Client, message: Message):
             InlineKeyboardButton('𝖧𝖾𝗅𝗉', callback_data='help_callback'),
             InlineKeyboardButton('𝖣𝖾𝗏𝖾𝗅𝗈𝗉𝖾𝗋', url='tg://openmessage?user_id=6165669080')
         ]
-    ]
+    ])
 
-    reply_markup = InlineKeyboardMarkup(buttons)
+
+@Client.on_message(filters.command(["start"]))
+async def send_start(client: Client, message: Message):
+    if IS_FSUB:
+        if not await get_fsub(client, message):
+            return
+
+    if not await db.is_user_exist(message.from_user.id):
+        await db.add_user(message.from_user.id, message.from_user.first_name)
 
     await client.send_message(
         chat_id=message.chat.id,
-        text=(
-            f"<b>👋 𝖧𝗂 {message.from_user.mention}, 𝖨 𝖺𝗆 𝖲𝖺𝗏𝖾 𝖱𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖢𝗈𝗇𝗍𝖾𝗇𝗍 𝖡𝗈𝗍 🤖</b>\n\n"
-            "<blockquote>𝖨 𝖼𝖺𝗇 𝗁𝖾𝗅𝗉 𝗒𝗈𝗎 𝗋𝖾𝗍𝗋𝗂𝖾𝗏𝖾 𝖺𝗇𝖽 𝖿𝗈𝗋𝗐𝖺𝗋𝖽 𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖼𝗈𝗇𝗍𝖾𝗇𝗍 𝖿𝗋𝗈𝗆 𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆 𝗉𝗈𝗌𝗍𝗌.! 𝖴𝗌𝖾 /help</blockquote>"
-        ),
-        reply_markup=reply_markup,
+        text=START_TXT.format(message.from_user.mention),
+        reply_markup=get_start_buttons(),
         reply_to_message_id=message.id
     )
+
 
 @Client.on_message(filters.command(["help"]))
 async def send_help(client: Client, message: Message):
     await client.send_message(chat_id=message.chat.id, text=HELP_TXT)
 
-# Callback Query Handler for the Help button
+
 @Client.on_callback_query()
 async def callback_query_handler(client: Client, callback_query: CallbackQuery):
     if callback_query.data == 'help_callback':
         await callback_query.answer()
-        # Help ke liye Back & Close buttons
         help_buttons = InlineKeyboardMarkup([
             [InlineKeyboardButton("𝖡𝖺𝖼𝗄", callback_data="back_callback"),
              InlineKeyboardButton("𝖢𝗅𝗈𝗌𝖾", callback_data="close_callback")]
@@ -99,10 +103,9 @@ async def callback_query_handler(client: Client, callback_query: CallbackQuery):
 
     elif callback_query.data == 'back_callback':
         await callback_query.answer()
-        # Wapas Start message wale buttons
         await callback_query.edit_message_text(
-            text=START_TXT,
-            reply_markup=start_buttons
+            text=START_TXT.format(callback_query.from_user.mention),
+            reply_markup=get_start_buttons()
         )
 
     elif callback_query.data == 'close_callback':
