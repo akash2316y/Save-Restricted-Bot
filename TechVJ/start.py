@@ -59,8 +59,11 @@ def progress(current, total, message, type):
     downloaded = human_readable_size(current)
     total_size = human_readable_size(total)
 
-    speed = current / (now - getattr(message, f"{type}_start", now))
-    eta = (total - current) / speed if speed > 0 else 0
+    elapsed_time = now - getattr(message, f"{type}_start", now)
+if elapsed_time == 0:
+    elapsed_time = 0.1  # Avoid division by zero
+
+speed = current / elapsed_time
 
     mins, secs = divmod(int(eta), 60)
     eta_str = f"{mins}m, {secs}s"
