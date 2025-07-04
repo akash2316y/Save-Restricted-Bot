@@ -49,6 +49,8 @@ def human_readable_size(size):
     return f"{size:.2f} PiB"
 
 
+import time
+
 def progress(current, total, message, type):
     now = time.time()
     percentage = current * 100 / total
@@ -60,10 +62,16 @@ def progress(current, total, message, type):
     total_size = human_readable_size(total)
 
     elapsed_time = now - getattr(message, f"{type}_start", now)
-if elapsed_time == 0:
-    elapsed_time = 0.1  # Avoid division by zero
+    if elapsed_time == 0:
+        elapsed_time = 0.1  # Avoid division by zero
 
-speed = current / elapsed_time
+    speed = current / elapsed_time
+
+    # Fix: Calculate ETA properly
+    if speed == 0:
+        eta = 0
+    else:
+        eta = (total - current) / speed
 
     mins, secs = divmod(int(eta), 60)
     eta_str = f"{mins}m, {secs}s"
@@ -76,6 +84,7 @@ speed = current / elapsed_time
         f"Speed: `{human_readable_size(speed)}/s`\n"
         f"ETA: `{eta_str}`"
     )
+
 
     with open(f'{message.id}{type}status.txt', "w") as fileup:
         fileup.write(display)
