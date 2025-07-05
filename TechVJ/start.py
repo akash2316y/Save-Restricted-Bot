@@ -284,17 +284,45 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
 
     try:
         send_func = getattr(client, f"send_{msg_type}", None)
-        if send_func:
-            await send_func(chat, file, **send_args, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+if send_func:
+    await send_func(chat, file, **send_args, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
 
-            await smsg.delete()
+    await smsg.delete()
 
-            try:
-                await send_func(DB_CHANNEL, file, caption=caption_db, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
-            except Exception as db_err:
-                print(f"Error sending to DB_CHANNEL: {db_err}")
+    try:
+        await send_func(DB_CHANNEL, file, caption=caption_db, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+    except Exception as db_err:
+        print(f"Error sending to DB_CHANNEL: {db_err}")
 
+    # ✅ Send to user's own channel too
+    user_channel = await db.get_channel(message.from_user.id)
+    if user_channel:
+        try:
+            await send_func(int(user_channel), file, caption=caption_db, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+        except Exception as e:
+            print(f"❌ Failed to send to user's channel: {e}")
+
+
+@Client.on_message(filters.command("addchannel") & filters.private)
+async def add_channel_cmd(client, message):
+    if len(message.command) < 2:
+        return await message.reply_text("❗ Example:\n`/addchannel -100xxxxxxxxxx`", quote=True)
+
+    channel_id = message.command[1]
+    if not channel_id.startswith("-100"):
+        return await message.reply_text("❗ Invalid Channel ID. Must start with `-100`.", quote=True)
+
+    try:
+        await db.add_channel(message.from_user.id, channel_id)
+        await message.reply_text(f"✅ Channel `{channel_id}` saved successfully!\nYour files will also be saved there.", quote=True)
     except Exception as e:
-        if ERROR_MESSAGE:
-            await client.send_message(chat, f"❌ Error: {e}", reply_to_message_id=message.id)
-        await smsg.delete()
+        await message.reply_text(f"⚠️ Error: {e}", quote=True)
+
+
+@Client.on_message(filters.command("delchannel") & filters.private)
+async def del_channel_cmd(client, message):
+    try:
+        await db.del_channel(message.from_user.id)
+        await message.reply_text("✅ Your saved channel has been removed successfully.", quote=True)
+    except Exception as e:
+        await message.reply_text(f"⚠️ Error: {e}", quote=True)
