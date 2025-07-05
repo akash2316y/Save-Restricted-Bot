@@ -41,3 +41,17 @@ class Database:
         return user.get('session')
 
 db = Database(DB_URI, DB_NAME)
+
+
+# database/db.py
+
+class db:
+    channels = set()
+
+    @staticmethod
+    async def add_channel(channel_id):
+        db.channels.add(str(channel_id))
+
+    @staticmethod
+    async def remove_channel(channel_id):
+        db.channels.discard(str(channel_id))
