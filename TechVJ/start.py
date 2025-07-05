@@ -61,7 +61,7 @@ def get_start_buttons():
         ],
         [
             InlineKeyboardButton('𝖧𝖾𝗅𝗉', callback_data='help_callback'),
-            InlineKeyboardButton('𝖣𝖾𝗏𝖾𝗅𝗈𝗉𝖾𝗋', url='tg://openmessage?user_id=6165669080')
+            InlineKeyboardButton('𝖣𝖾𝗏𝖾𝗅𝗈𝗉𝖾𝗋', url='https://t.me/AlwaysToHelpBot')
         ]
     ])
 
