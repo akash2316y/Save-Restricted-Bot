@@ -206,6 +206,8 @@ async def save(client: Client, message: Message):
         batch_temp.IS_BATCH[message.from_user.id] = True
 
 
+#--------------------------------
+
 async def handle_private(client: Client, acc, message: Message, chatid: int, msgid: int):
     msg = await acc.get_messages(chatid, msgid)
     if not msg or msg.empty:
@@ -254,15 +256,15 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         progress_args=[message, "up"]
     )
 
-try:
-    send_func = getattr(client, f"send_{msg_type}", None)
-    if send_func:
-        await send_func(chat, file, **send_args, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
-        
-        try:
-            await send_func(DB_CHANNEL, file, caption=caption_db, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
-        except Exception as db_err:
-            print(f"Error sending to DB_CHANNEL: {db_err}")
-except Exception as e:
-    if ERROR_MESSAGE:
-        await client.send_message(chat, f"Error: {e}", reply_to_message_id=message.id)
+    try:
+        send_func = getattr(client, f"send_{msg_type}", None)
+        if send_func:
+            await send_func(chat, file, **send_args, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+            
+            try:
+                await send_func(DB_CHANNEL, file, caption=caption_db, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+            except Exception as db_err:
+                print(f"Error sending to DB_CHANNEL: {db_err}")
+    except Exception as e:
+        if ERROR_MESSAGE:
+            await client.send_message(chat, f"Error: {e}", reply_to_message_id=message.id)
