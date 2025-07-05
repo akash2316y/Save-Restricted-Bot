@@ -1,13 +1,12 @@
 import os
+import time
 import asyncio
-from pyrogram import Client, filters, enums
-from pyrogram.types import CallbackQuery
-from .fsub import get_fsub
-from config import IS_FSUB
-from pyrogram.errors import UsernameNotOccupied
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
-from config import API_ID, API_HASH, ERROR_MESSAGE, DB_CHANNEL
+from pyrogram import Client, filters, enums
+from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, Message
+
+from .fsub import get_fsub
+from config import IS_FSUB, API_ID, API_HASH, ERROR_MESSAGE, DB_CHANNEL
 from database.db import db
 from TechVJ.strings import HELP_TXT
 
@@ -23,7 +22,7 @@ async def downstatus(client, statusfile, message, chat):
         with open(statusfile, "r") as downread:
             txt = downread.read()
         try:
-            await client.edit_message_text(chat, message.id, f"Downloaded: {txt}")
+            await client.edit_message_text(chat, message.id, txt)
             await asyncio.sleep(1)
         except:
             await asyncio.sleep(1)
@@ -36,22 +35,56 @@ async def upstatus(client, statusfile, message, chat):
         with open(statusfile, "r") as upread:
             txt = upread.read()
         try:
-            await client.edit_message_text(chat, message.id, f"Uploaded: {txt}")
+            await client.edit_message_text(chat, message.id, txt)
             await asyncio.sleep(1)
         except:
             await asyncio.sleep(1)
 
 
+def human_readable_size(size):
+    for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB']:
+        if size < 1024:
+            return f"{size:.2f} {unit}"
+        size /= 1024
+    return f"{size:.2f} PiB"
+
+
 def progress(current, total, message, type):
+    now = time.time()
+    percentage = current * 100 / total
+    bar_length = 10
+    filled_length = int(bar_length * percentage // 100)
+    bar = '▪️' * filled_length + '▫️' * (bar_length - filled_length)
+
+    downloaded = human_readable_size(current)
+    total_size = human_readable_size(total)
+
+    if not hasattr(message, f"{type}_start"):
+        setattr(message, f"{type}_start", now)
+
+    speed = current / (now - getattr(message, f"{type}_start", now))
+    eta = (total - current) / speed if speed > 0 else 0
+    mins, secs = divmod(int(eta), 60)
+    eta_str = f"{mins}m, {secs}s"
+
+    display = (
+        f"**Uploading :-**  **{message.id:03d}.**\n"
+        f"**[{bar}]**\n"
+        f"Processing: `{percentage:.2f}%`\n"
+        f"Size: `{downloaded} of {total_size}`\n"
+        f"Speed: `{human_readable_size(speed)}/s`\n"
+        f"ETA: `{eta_str}`"
+    )
+
     with open(f'{message.id}{type}status.txt', "w") as fileup:
-        fileup.write(f"{current * 100 / total:.1f}%")
+        fileup.write(display)
 
 
-# Define START text and buttons globally
 START_TXT = (
     "<b>👋 𝖧𝗂 {}, 𝖨 𝖺𝗆 𝖲𝖺𝗏𝖾 𝖱𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖢𝗈𝗇𝗍𝖾𝗇𝗍 𝖡𝗈𝗍 🤖</b>\n\n"
     "<blockquote>𝖨 𝖼𝖺𝗇 𝗁𝖾𝗅𝗉 𝗒𝗈𝗎 𝗋𝖾𝗍𝗋𝗂𝖾𝗏𝖾 𝖺𝗇𝖽 𝖿𝗈𝗋𝗐𝖺𝗋𝖽 𝗋𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖼𝗈𝗇𝗍𝖾𝗇𝗍 𝖿𝗋𝗈𝗆 𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆 𝗉𝗈𝗌𝗍𝗌.</blockquote>"
 )
+
 
 def get_start_buttons():
     return InlineKeyboardMarkup([
@@ -61,7 +94,7 @@ def get_start_buttons():
         ],
         [
             InlineKeyboardButton('𝖧𝖾𝗅𝗉', callback_data='help_callback'),
-            InlineKeyboardButton('𝖣𝖾𝗏𝖾𝗅𝗈𝗉𝖾𝗋', url='https://t.me/AlwaysToHelpBot')
+            InlineKeyboardButton('𝖣𝖾𝗏𝖾𝗅𝗈𝗉𝖾𝗋', url='tg://openmessage?user_id=6165669080')
         ]
     ])
 
@@ -82,13 +115,16 @@ async def send_start(client: Client, message: Message):
         reply_to_message_id=message.id
     )
 
+
 @Client.on_callback_query()
 async def callback_query_handler(client: Client, callback_query: CallbackQuery):
     if callback_query.data == 'help_callback':
         await callback_query.answer()
         help_buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("𝖡𝖺𝖼𝗄", callback_data="back_callback"),
-             InlineKeyboardButton("𝖢𝗅𝗈𝗌𝖾", callback_data="close_callback")]
+            [
+                InlineKeyboardButton("𝖡𝖺𝖼𝗄", callback_data="back_callback"),
+                InlineKeyboardButton("𝖢𝗅𝗈𝗌𝖾", callback_data="close_callback")
+            ]
         ])
         await callback_query.edit_message_text(
             text=HELP_TXT,
@@ -105,8 +141,8 @@ async def callback_query_handler(client: Client, callback_query: CallbackQuery):
     elif callback_query.data == 'close_callback':
         await callback_query.answer()
         await callback_query.message.delete()
-        
-        
+
+
 @Client.on_message(filters.command(["cancel"]))
 async def send_cancel(client: Client, message: Message):
     batch_temp.IS_BATCH[message.from_user.id] = True
@@ -168,19 +204,17 @@ async def save(client: Client, message: Message):
         batch_temp.IS_BATCH[message.from_user.id] = True
 
 
-def get_message_type(msg):
-    for attr in ["document", "video", "animation", "sticker", "voice", "audio", "photo", "text"]:
-        if getattr(msg, attr, None):
-            return attr.capitalize()
-    return None
-
-
 async def handle_private(client: Client, acc, message: Message, chatid: int, msgid: int):
     msg = await acc.get_messages(chatid, msgid)
     if not msg or msg.empty:
         return
 
-    msg_type = get_message_type(msg)
+    msg_type = None
+    for attr in ["document", "video", "animation", "sticker", "voice", "audio", "photo", "text"]:
+        if getattr(msg, attr, None):
+            msg_type = attr
+            break
+
     if not msg_type:
         return
 
@@ -200,11 +234,9 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
 
     asyncio.create_task(upstatus(client, f'{message.id}upstatus.txt', smsg, chat))
 
-    # Clean caption for user (no user tag), add tag for DB channel
     caption_user = msg.caption or msg.text or ""
     caption_db = caption_user + f"\n\n{user_tag}"
 
-    # Collect buttons (if any)
     buttons = []
     if msg.reply_markup and msg.reply_markup.inline_keyboard:
         for row in msg.reply_markup.inline_keyboard:
@@ -221,11 +253,9 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     )
 
     try:
-        send_func = getattr(client, f"send_{msg_type.lower()}", None)
+        send_func = getattr(client, f"send_{msg_type}", None)
         if send_func:
-            # Send to user without user info, with buttons
             await send_func(chat, file, **send_args, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
-            # Send to DB_CHANNEL with user tag and buttons
             await send_func(DB_CHANNEL, file, caption=caption_db, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
     except Exception as e:
         if ERROR_MESSAGE:
@@ -237,4 +267,3 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         os.remove(file)
 
     await client.delete_messages(chat, [smsg.id])
-            
