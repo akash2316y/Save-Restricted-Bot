@@ -214,19 +214,19 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         return
 
     msg_type = None
-    for attr in ["document", "video", "animation", "sticker", "voice", "audio", "photo"]:
+    for attr in ["document", "video", "animation", "sticker", "voice", "audio", "photo", "text"]:
         if getattr(msg, attr, None):
             msg_type = attr
             break
 
     if not msg_type:
-        msg_type = "text"
+        return
 
     chat = message.chat.id
     user_tag = f"From: [{message.from_user.first_name}](tg://user?id={message.from_user.id})"
 
-    # Start with Downloading message
-    smsg = await client.send_message(chat, '**📥 𝖣𝗈𝗐𝗇𝗅𝗈𝖺𝖽𝗂𝗇𝗀...**', reply_to_message_id=message.id)
+    # Start Download message
+    smsg = await client.send_message(chat, '**📥 Downloading...**', reply_to_message_id=message.id)
     asyncio.create_task(downstatus(client, f'{message.id}downstatus.txt', smsg, chat))
 
     try:
@@ -238,11 +238,11 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         await smsg.delete()
         return
 
-    # Show Uploading status
-    await smsg.edit_text('**📤 𝖴𝗉𝗅𝗈𝖺𝖽𝗂𝗇𝗀...**')
+    # Show Upload message
+    await smsg.edit_text('**📤 Uploading...**')
     asyncio.create_task(upstatus(client, f'{message.id}upstatus.txt', smsg, chat))
 
-    # Prepare captions
+    # Get Caption and File Name
     caption_user = msg.caption or msg.text or ""
     file_name = None
 
@@ -254,11 +254,16 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         file_name = msg.audio.file_name
     elif hasattr(msg, "animation") and msg.animation:
         file_name = msg.animation.file_name
+    elif hasattr(msg, "sticker") and msg.sticker:
+        file_name = "Sticker.webp"
+    elif hasattr(msg, "photo") and msg.photo:
+        file_name = "Image.jpg"
+    elif hasattr(msg, "voice") and msg.voice:
+        file_name = "Voice.ogg"
 
     display_file_name = f"**📄 {file_name}**\n\n" if file_name else ""
-
-    final_caption = display_file_name + caption_user + f"\n\n{user_tag}"
-    display_caption = display_file_name + caption_user
+    caption_display = display_file_name + caption_user
+    caption_db = display_file_name + caption_user + f"\n\n{user_tag}"
 
     buttons = []
     if msg.reply_markup and msg.reply_markup.inline_keyboard:
@@ -268,7 +273,7 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
                     buttons.append([InlineKeyboardButton(button.text, url=button.url)])
 
     send_args = dict(
-        caption=display_caption,
+        caption=caption_display,
         reply_to_message_id=message.id,
         parse_mode=enums.ParseMode.MARKDOWN,
         progress=progress,
@@ -280,12 +285,10 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         if send_func:
             await send_func(chat, file, **send_args, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
 
-            # Clean up uploading message
             await smsg.delete()
 
-            # Send to DB_CHANNEL
             try:
-                await send_func(DB_CHANNEL, file, caption=final_caption, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+                await send_func(DB_CHANNEL, file, caption=caption_db, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
             except Exception as db_err:
                 print(f"Error sending to DB_CHANNEL: {db_err}")
 
