@@ -254,12 +254,11 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         progress_args=[message, "up"]
     )
 
-    try:
+try:
     send_func = getattr(client, f"send_{msg_type}", None)
     if send_func:
         await send_func(chat, file, **send_args, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
         
-        # Safely send to DB_CHANNEL
         try:
             await send_func(DB_CHANNEL, file, caption=caption_db, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
         except Exception as db_err:
