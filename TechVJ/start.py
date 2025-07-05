@@ -62,8 +62,10 @@ def progress(current, total, message, type):
     if not hasattr(message, f"{type}_start"):
         setattr(message, f"{type}_start", now)
 
-    speed = current / (now - getattr(message, f"{type}_start", now))
+    elapsed_time = max(now - getattr(message, f"{type}_start", now), 0.1)
+    speed = current / elapsed_time
     eta = (total - current) / speed if speed > 0 else 0
+
     mins, secs = divmod(int(eta), 60)
     eta_str = f"{mins}m, {secs}s"
 
