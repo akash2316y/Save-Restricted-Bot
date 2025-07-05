@@ -63,16 +63,10 @@ def progress(current, total, message, type):
 
     elapsed_time = now - getattr(message, f"{type}_start", now)
     if elapsed_time == 0:
-        elapsed_time = 0.1  # Avoid division by zero
+        elapsed_time = 0.1
 
     speed = current / elapsed_time
-
-    # Fix: Calculate ETA properly
-    if speed == 0:
-        eta = 0
-    else:
-        eta = (total - current) / speed
-
+    eta = (total - current) / speed if speed != 0 else 0
     mins, secs = divmod(int(eta), 60)
     eta_str = f"{mins}m, {secs}s"
 
@@ -84,7 +78,6 @@ def progress(current, total, message, type):
         f"Speed: `{human_readable_size(speed)}/s`\n"
         f"ETA: `{eta_str}`"
     )
-
 
     with open(f'{message.id}{type}status.txt', "w") as fileup:
         fileup.write(display)
@@ -168,7 +161,7 @@ async def save(client: Client, message: Message):
         return
 
     if batch_temp.IS_BATCH.get(message.from_user.id) == False:
-        return await message.reply_text("𝖳𝖺𝗌𝗄 𝗂𝗌 𝖺𝗅𝗋𝖾𝖺𝖽𝗒 𝗉𝗋𝗈𝖼𝖾𝗌𝗌𝗂𝗇𝗀. \n𝖴𝗌𝖾 /cancel 𝗍𝗈 𝗌𝗍𝗈𝗉.")
+        return await message.reply_text("𝖳𝖺𝗌𝗄 𝗂𝗌 𝖺𝗅𝗋𝖾𝖺𝖽𝗒 𝗉𝗋𝗈𝗈𝖼𝖾𝗌𝗌𝗂𝗇𝗀. \n𝖴𝗌𝖾 /cancel 𝗍𝗈 𝗌𝗍𝗈𝗉.")
 
     urls = [x.strip() for x in message.text.split("\n") if x.startswith("https://t.me/")]
 
@@ -280,3 +273,25 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
         os.remove(file)
 
     await client.delete_messages(chat, [smsg.id])
+
+
+# New AddChannel Command
+@Client.on_message(filters.command(["addchannel"]) & filters.private)
+async def add_channel(client: Client, message: Message):
+    if len(message.command) < 2:
+        return await message.reply("Usage: `/addchannel <channel_id>`", parse_mode=enums.ParseMode.MARKDOWN)
+
+    channel_id = message.command[1]
+    await db.add_channel(channel_id)
+    await message.reply(f"✅ Channel `{channel_id}` added successfully.", parse_mode=enums.ParseMode.MARKDOWN)
+
+
+# New DelChannel Command
+@Client.on_message(filters.command(["delchannel"]) & filters.private)
+async def del_channel(client: Client, message: Message):
+    if len(message.command) < 2:
+        return await message.reply("Usage: `/delchannel <channel_id>`", parse_mode=enums.ParseMode.MARKDOWN)
+
+    channel_id = message.command[1]
+    await db.remove_channel(channel_id)
+    await message.reply(f"❌ Channel `{channel_id}` removed successfully.", parse_mode=enums.ParseMode.MARKDOWN)
