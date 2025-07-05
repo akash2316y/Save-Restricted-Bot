@@ -255,17 +255,15 @@ async def handle_private(client: Client, acc, message: Message, chatid: int, msg
     )
 
     try:
-        send_func = getattr(client, f"send_{msg_type}", None)
-        if send_func:
-            await send_func(chat, file, **send_args, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+    send_func = getattr(client, f"send_{msg_type}", None)
+    if send_func:
+        await send_func(chat, file, **send_args, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
+        
+        # Safely send to DB_CHANNEL
+        try:
             await send_func(DB_CHANNEL, file, caption=caption_db, parse_mode=enums.ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons) if buttons else None)
-    except Exception as e:
-        if ERROR_MESSAGE:
-            await client.send_message(chat, f"Error: {e}", reply_to_message_id=message.id)
-
-    if os.path.exists(f'{message.id}upstatus.txt'):
-        os.remove(f'{message.id}upstatus.txt')
-    if os.path.exists(file):
-        os.remove(file)
-
-    await client.delete_messages(chat, [smsg.id])
+        except Exception as db_err:
+            print(f"Error sending to DB_CHANNEL: {db_err}")
+except Exception as e:
+    if ERROR_MESSAGE:
+        await client.send_message(chat, f"Error: {e}", reply_to_message_id=message.id)
