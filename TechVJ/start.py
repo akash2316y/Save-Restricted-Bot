@@ -48,6 +48,7 @@ def human_readable_size(size):
         size /= 1024
     return f"{size:.2f} PiB"
 
+#-------------------------x---------------------x-------------
 
 def progress(current, total, message, type):
     now = time.time()
@@ -70,9 +71,9 @@ def progress(current, total, message, type):
     eta_str = f"{mins}m, {secs}s"
 
     display = (
-        f"**Uploading :-**  **{message.id:03d}.**\n"
+        f"**{'📥 Downloading' if type == 'down' else '📤 Uploading'}**\n\n"
         f"**[{bar}]**\n"
-        f"Processing: `{percentage:.2f}%`\n"
+        f"Progress: `{percentage:.2f}%`\n"
         f"Size: `{downloaded} of {total_size}`\n"
         f"Speed: `{human_readable_size(speed)}/s`\n"
         f"ETA: `{eta_str}`"
@@ -81,6 +82,7 @@ def progress(current, total, message, type):
     with open(f'{message.id}{type}status.txt', "w") as fileup:
         fileup.write(display)
 
+#-------------------------x---------------------x-------------
 
 START_TXT = (
     "<b>👋 𝖧𝗂 {}, 𝖨 𝖺𝗆 𝖲𝖺𝗏𝖾 𝖱𝖾𝗌𝗍𝗋𝗂𝖼𝗍𝖾𝖽 𝖢𝗈𝗇𝗍𝖾𝗇𝗍 𝖡𝗈𝗍 🤖</b>\n\n"
