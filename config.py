@@ -1,7 +1,7 @@
 import os
 from typing import List
 
-IS_FSUB = bool(os.environ.get("FSUB", True)) # Set "True" For Enable Force Subscribe
+IS_FSUB = bool(os.environ.get("FSUB", False)) # Set "True" For Enable Force Subscribe
 AUTH_CHANNELS = list(map(int, os.environ.get("AUTH_CHANNEL", "-1002008497819 -1002108042638").split())) # Add Multiple channel id
 
 # Bot token @Botfather
